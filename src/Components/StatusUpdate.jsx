@@ -1,48 +1,66 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function StatusUpdate() {
-  const [userValues, setUserValues] = useState(null); // To hold user data
-  const [error, setError] = useState(null); // To handle errors
+function StatusUpdate() {
+  const [userValues, setUserValues] = useState(null); // Store user-entered values
 
   useEffect(() => {
-    const fetchUserValues = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/api/user-values");
-        setUserValues(response.data);
-        setError(null); // Clear any previous errors
-      } catch (error) {
-        setError("Failed to fetch user values.");
-        console.error("Error fetching user values:", error);
-      }
-    };
+    // Fetch the user values from the backend when the component loads
+    axios
+      .get("http://localhost:8080/api/user-values")
+      .then((response) => {
+        console.log("User Values:", response.data);
+        setUserValues(response.data); // Set the fetched data
+      })
+      .catch((error) => console.error("Error fetching user values:", error));
+  }, []);
 
-    fetchUserValues();
-  }, []); // Dependency array ensures fetch is called on component load
+  const startTicketProcess = () => {
+    // Inform the backend to start the process
+    axios
+      .post("http://localhost:8080/api/user-values/start-process", {})
+      .then(() => {
+        alert("Ticket distribution process started!");
+      })
+      .catch((error) => {
+        console.error("Error starting the ticket process:", error);
+        alert("Error starting the ticket process!");
+      });
+  };
 
   return (
     <div>
       <h1>Status Update</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {userValues ? (
-        <div>
-          <h3>Vendors</h3>
-          {userValues.vendors.length > 0 ? (
-            <pre>{JSON.stringify(userValues.vendors, null, 2)}</pre>
-          ) : (
-            <p>No vendors found.</p>
-          )}
 
-          <h3>Customers</h3>
-          {userValues.customers.length > 0 ? (
-            <pre>{JSON.stringify(userValues.customers, null, 2)}</pre>
-          ) : (
-            <p>No customers found.</p>
-          )}
-        </div>
+      {userValues ? (
+        <>
+          <h2>Max Ticket Capacity</h2>
+          <p>{userValues.maxTicketCapacity}</p>
+
+          <h2>Vendors</h2>
+          {userValues.vendors.map((vendor, index) => (
+            <div key={index}>
+              <p>Vendor ID: {vendor.vendorId}</p>
+              <p>Total Tickets: {vendor.totalTickets}</p>
+              <p>Ticket Release Rate: {vendor.ticketReleaseRate}</p>
+            </div>
+          ))}
+
+          <h2>Customers</h2>
+          {userValues.customers.map((customer, index) => (
+            <div key={index}>
+              <p>Customer ID: {customer.customerId}</p>
+              <p>Retrieval Rate: {customer.retrievalRate}</p>
+            </div>
+          ))}
+
+          <button onClick={startTicketProcess}>Start Ticket Process</button>
+        </>
       ) : (
         <p>Loading user values...</p>
       )}
     </div>
   );
 }
+
+export default StatusUpdate;

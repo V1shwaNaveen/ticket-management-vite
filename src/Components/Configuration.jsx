@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 
 function Configuration() {
   const [config, setConfig] = useState({
@@ -10,13 +10,15 @@ function Configuration() {
     totalTickets: "",
   });
 
+  const navigate = useNavigate(); // Initialize the navigate function
+
   const handleChange = (e) => {
     setConfig({ ...config, [e.target.name]: e.target.value });
   };
 
   const handleSave = async () => {
     try {
-      const response = await axios.post("http://localhost:8080/api/controller", config); // Full URL to backend
+      const response = await axios.post("http://localhost:8080/api/controller", config);
       alert("Configuration saved successfully!");
     } catch (error) {
       console.error("Error saving configuration:", error);
@@ -26,12 +28,21 @@ function Configuration() {
 
   const handleLoad = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/controller"); // Full URL to backend
-      setConfig(response.data); // Update the form fields with loaded config
+      const response = await axios.get("http://localhost:8080/api/controller");
+      setConfig(response.data);
     } catch (error) {
       console.error("Error loading configuration:", error);
       alert("Error loading configuration!");
     }
+  };
+
+  const handleNext = () => {
+    // Here, use navigate and pass the state
+    navigate("/StatusUpdate", {
+      state: { useConfig: true }, 
+      configValues : config,
+        },
+    );
   };
 
   return (
@@ -49,7 +60,7 @@ function Configuration() {
           />
         </div>
         <div>
-          <label>Ticket Release Rate : </label>
+          <label>Ticket Release Rate: </label>
           <input
             type="number"
             name="ticketReleaseRate"
@@ -59,7 +70,7 @@ function Configuration() {
           />
         </div>
         <div>
-          <label>Customer Retrieval Rate : </label>
+          <label>Customer Retrieval Rate: </label>
           <input
             type="number"
             name="customerRetrievalRate"
@@ -85,16 +96,14 @@ function Configuration() {
           Load Configuration
         </button>
         <div>
-            <Link to="/">
+          <Link to="/">
             <button>
-                Back
+              Back
             </button>
-            </Link>
-            <Link to="/StatusUpdate">
-            <button>
-                Next
-            </button>
-            </Link>
+          </Link>
+          <button type="button" onClick={handleNext}>
+            Next
+          </button>
         </div>
       </form>
     </div>
